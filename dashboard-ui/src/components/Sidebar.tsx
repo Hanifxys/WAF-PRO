@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShieldAlert, Settings, Activity, FileCode2, Ban, Globe, Sliders, Gauge, ShieldCheck, Lock, Network, Flame, Bot, FlaskConical, Bell, History, Radar, KeyRound, Share2, BadgeCheck, Waves, ScrollText, Binary, Server, Sparkles, Building2, TrendingUp } from "lucide-react";
+import { 
+  LayoutDashboard, ShieldAlert, Settings, Activity, FileCode2, Ban, Globe, Sliders, 
+  Gauge, ShieldCheck, Lock, Network, Flame, Bot, FlaskConical, Bell, History, Radar, 
+  KeyRound, Share2, BadgeCheck, Waves, ScrollText, Binary, Server, Sparkles, Building2, 
+  TrendingUp, Search, FileCheck, Fingerprint, Radio, GitBranch, SearchCheck 
+} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -14,6 +19,12 @@ const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "App Wizard", href: "/onboarding", icon: Sparkles },
   { name: "Applications", href: "/applications", icon: Globe },
+  { name: "Asset Discovery", href: "/asset-discovery", icon: Search },
+  { name: "Schema Enforcement", href: "/schema-enforcement", icon: FileCheck },
+  { name: "Identity & JWT", href: "/identity-jwt", icon: Fingerprint },
+  { name: "Modern Protocols", href: "/modern-protocols", icon: Radio },
+  { name: "Canary & GitOps", href: "/canary-gitops", icon: GitBranch },
+  { name: "Investigation Hub", href: "/investigation-tools", icon: SearchCheck },
   { name: "Tenants", href: "/tenants", icon: Building2 },
   { name: "Capacity", href: "/capacity", icon: TrendingUp },
   { name: "API Security", href: "/api-security", icon: Network },
