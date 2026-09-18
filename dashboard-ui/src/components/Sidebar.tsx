@@ -42,6 +42,7 @@ const navItems = [
   { name: "Policy Studio", href: "/policy-studio", icon: ShieldCheck },
   { name: "DLP Protection", href: "/dlp", icon: Lock },
   { name: "Rules", href: "/rules", icon: FileCode2 },
+  { name: "CVE Catalog", href: "/cve-catalog", icon: ShieldCheck },
   { name: "Alert Rules", href: "/alerts", icon: Bell },
   { name: "Config History", href: "/config-history", icon: History },
   { name: "Access Control", href: "/access-control", icon: KeyRound },

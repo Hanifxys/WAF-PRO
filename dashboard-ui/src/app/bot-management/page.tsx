@@ -208,6 +208,13 @@ export default function BotManagementPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => window.open("http://localhost:8082/api/v1/bot-challenge/interstitial", "_blank")}
+            className="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <Cpu className="w-4 h-4" />
+            Preview JS Challenge
+          </button>
+          <button
             onClick={handleSyncBotShield}
             disabled={actionLoading}
             className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg transition-all"

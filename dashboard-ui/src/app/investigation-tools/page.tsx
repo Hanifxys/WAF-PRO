@@ -287,6 +287,37 @@ export default function InvestigationToolsPage() {
                   </ul>
                 </div>
               )}
+
+              <div className="pt-3 border-t border-border flex items-center justify-between">
+                <span className="text-[11px] text-muted-foreground">False Positive mitigation available:</span>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("http://localhost:8082/api/v1/exceptions/auto-generate", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          event_id: explainResult.event_id || Number(explainEventID) || 1,
+                          scope: "PATH_ONLY",
+                          ttl_seconds: 86400,
+                          reason: `Auto-exception from Investigation Tool for Rule ${explainResult.rule_id}`,
+                        }),
+                      });
+                      if (res.ok) {
+                        alert(`Exception successfully created and synchronized to Envoy xDS for Rule #${explainResult.rule_id}!`);
+                      } else {
+                        alert("Failed to auto-generate exception.");
+                      }
+                    } catch (e) {
+                      alert("Network error occurred.");
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs rounded-lg transition shadow-md flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  1-Click Whitelist Exception (24h TTL)
+                </button>
+              </div>
             </div>
           )}
         </div>

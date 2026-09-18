@@ -32,6 +32,12 @@ export default function EventsPage() {
   const [viewMode, setViewMode] = useState<"basic" | "all">("basic");
   const [showRiskModal, setShowRiskModal] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+
+  // Usability Pack: 1-Click Rule Exception Wizard State
+  const [showExceptionWizard, setShowExceptionWizard] = useState(false);
+  const [exceptionScope, setExceptionScope] = useState<"PATH_ONLY" | "TARGET" | "GLOBAL">("PATH_ONLY");
+  const [exceptionTTL, setExceptionTTL] = useState<number>(86400); // 24h default
+  const [creatingException, setCreatingException] = useState(false);
   const [riskForm, setRiskForm] = useState({
     crq_number: "CRQ000000858920",
     rlm_number: "RLM000000413504",
@@ -142,6 +148,41 @@ export default function EventsPage() {
       setNotification({ type: "error", message: "Network error during email dispatch." });
     } finally {
       setSendingEmail(false);
+    }
+  };
+
+  const handleAutoGenerateException = async () => {
+    if (!selectedEvent) return;
+    setCreatingException(true);
+    setNotification({ type: null, message: "" });
+    try {
+      const res = await fetch(`${API}/api/v1/exceptions/auto-generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_id: selectedEvent.id,
+          scope: exceptionScope,
+          ttl_seconds: exceptionTTL,
+          reason: `Auto-generated 1-click exception from Event #${selectedEvent.id} (${selectedEvent.path})`,
+          ticket_ref: riskForm.crq_number || `CRQ-AUTO-${selectedEvent.id}`,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setNotification({
+          type: "success",
+          message: `Rule exception active! Target Rule #${selectedEvent.rule_id} whitelisted on ${data.applied_scope} with TTL ${exceptionTTL > 0 ? exceptionTTL / 3600 + "h" : "Permanent"}. xDS updated in Envoy!`,
+        });
+        setShowExceptionWizard(false);
+        setSelectedEvent(null);
+      } else {
+        setNotification({ type: "error", message: "Failed to generate rule exception." });
+      }
+    } catch (err) {
+      setNotification({ type: "error", message: "Network error during exception creation." });
+    } finally {
+      setCreatingException(false);
     }
   };
 
@@ -475,6 +516,16 @@ export default function EventsPage() {
 
                 {selectedEvent.rule_id && selectedEvent.rule_id !== "0" && (
                   <button
+                    onClick={() => setShowExceptionWizard(true)}
+                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-black text-xs font-bold py-2 px-3.5 rounded-lg shadow-md transition-all"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-black" />
+                    1-Click Exception Wizard
+                  </button>
+                )}
+
+                {selectedEvent.rule_id && selectedEvent.rule_id !== "0" && (
+                  <button
                     onClick={() => {
                       // Open Granular Exception Wizard with pre-filled context
                       const params = new URLSearchParams({
@@ -497,6 +548,118 @@ export default function EventsPage() {
                 className="px-4 py-2 text-xs font-medium bg-secondary hover:bg-secondary/80 rounded-lg text-foreground border border-border"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 1-Click Rule Exception Wizard Modal */}
+      {showExceptionWizard && selectedEvent && (
+        <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#121722] border border-emerald-500/40 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-border/70 flex items-center justify-between bg-[#151e2e]">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <div>
+                  <h3 className="font-bold text-sm text-white">1-Click Rule Exception Generator</h3>
+                  <p className="text-[11px] text-muted-foreground">Automatically extract offending signature, path, and parameter to generate xDS bypass</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowExceptionWizard(false)}
+                className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs">
+              <div className="p-3 bg-secondary/40 border border-border rounded-lg space-y-2 font-mono">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Target Rule ID:</span>
+                  <span className="text-emerald-400 font-bold">CRS #{selectedEvent.rule_id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Evaluation Path:</span>
+                  <span className="text-foreground">{selectedEvent.path}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Offending Client:</span>
+                  <span className="text-cyan-400">{selectedEvent.client_ip}</span>
+                </div>
+              </div>
+
+              {/* Scope Selection */}
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1.5">Bypass Scope</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: "PATH_ONLY", title: "Path Only", desc: "Whitelists rule for all queries on this path" },
+                    { id: "TARGET", title: "Parameter Only", desc: "Whitelists rule only on specific parameter (ARGS:q)" },
+                    { id: "GLOBAL", title: "Global Bypass", desc: "Completely disables rule across application" },
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setExceptionScope(s.id as any)}
+                      className={`p-3 rounded-lg border text-left transition-all ${
+                        exceptionScope === s.id
+                          ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-300"
+                          : "bg-secondary/30 border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <div className="font-bold text-xs">{s.title}</div>
+                      <div className="text-[10px] mt-1 opacity-80">{s.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* TTL Selection */}
+              <div>
+                <label className="text-xs font-semibold text-foreground block mb-1.5">Time-To-Live (Auto-Expiry)</label>
+                <div className="grid grid-cols-3 gap-2 font-mono text-xs">
+                  {[
+                    { sec: 86400, label: "24 Hours (Temp)" },
+                    { sec: 604800, label: "7 Days (Sprint)" },
+                    { sec: 0, label: "Permanent" },
+                  ].map((t) => (
+                    <button
+                      key={t.sec}
+                      type="button"
+                      onClick={() => setExceptionTTL(t.sec)}
+                      className={`py-2 rounded-lg border text-center transition-all ${
+                        exceptionTTL === t.sec
+                          ? "bg-cyan-500/10 border-cyan-500/50 text-cyan-300 font-bold"
+                          : "bg-secondary/30 border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-[11px]">
+                Upon confirmation, an xDS config snapshot will be compiled and distributed to all Envoy workers without proxy reload or traffic interruption.
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-border flex items-center justify-end gap-2 bg-[#151e2e]">
+              <button
+                onClick={() => setShowExceptionWizard(false)}
+                className="px-4 py-2 text-xs font-medium bg-secondary hover:bg-secondary/80 rounded-lg text-foreground border border-border"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAutoGenerateException}
+                disabled={creatingException}
+                className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold py-2 px-4 rounded-lg shadow-md transition-colors"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                {creatingException ? "Compiling xDS..." : "Generate Exception & Deploy"}
               </button>
             </div>
           </div>

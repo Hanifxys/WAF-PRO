@@ -49,6 +49,10 @@ export default function ApplicationOnboardingPage() {
   const [frameOptions, setFrameOptions] = useState("SAMEORIGIN");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Live Connectivity Probe state
+  const [isProbing, setIsProbing] = useState(false);
+  const [probeResult, setProbeResult] = useState<any | null>(null);
+
   const fetchApps = async () => {
     try {
       setLoading(true);
@@ -106,12 +110,46 @@ export default function ApplicationOnboardingPage() {
         setName("");
         setDomain("");
         setBackendUrl("http://");
+        setProbeResult(null);
         fetchApps();
       }
     } catch (err) {
       console.error(err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleLiveConnectivityProbe = async () => {
+    if (!backendUrl || backendUrl === "http://") return;
+    setIsProbing(true);
+    setProbeResult(null);
+    try {
+      const res = await fetch("http://localhost:8082/api/v1/applications/verify-connectivity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          domain: domain || "test.example.com",
+          backend_url: backendUrl,
+          test_attack: true,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProbeResult(data);
+      } else {
+        setProbeResult({
+          origin_reachable: false,
+          diagnostic_message: "Probe failed to reach management plane verification API.",
+        });
+      }
+    } catch (err) {
+      setProbeResult({
+        origin_reachable: false,
+        diagnostic_message: "Network exception while probing target origin.",
+      });
+    } finally {
+      setIsProbing(false);
     }
   };
 
@@ -262,6 +300,54 @@ export default function ApplicationOnboardingPage() {
                   </select>
                 </div>
               </div>
+
+              {/* Live Connectivity Probe Section */}
+              <div className="p-4 rounded-xl border border-border bg-secondary/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                      Live Pre-Flight Connectivity & WAF Interception Probe
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Verify backend upstream accessibility and simulate exploit interception before launching service.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLiveConnectivityProbe}
+                    disabled={isProbing || !backendUrl || backendUrl === "http://"}
+                    className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isProbing ? "animate-spin" : ""}`} />
+                    {isProbing ? "Probing Origin..." : "Run Live Probe"}
+                  </button>
+                </div>
+
+                {probeResult && (
+                  <div className={`p-3 rounded-lg border text-xs space-y-2 ${
+                    probeResult.origin_reachable 
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                      : "bg-rose-500/10 border-rose-500/30 text-rose-300"
+                  }`}>
+                    <div className="flex items-center justify-between font-mono">
+                      <span className="flex items-center gap-1.5 font-bold">
+                        {probeResult.origin_reachable ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-rose-400" />
+                        )}
+                        Origin Health: {probeResult.origin_reachable ? `HTTP ${probeResult.origin_status_code} (${probeResult.origin_latency_ms}ms)` : "UNREACHABLE"}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        WAF Interception: {probeResult.waf_attack_intercepted ? "VERIFIED (403 Forbidden)" : "BYPASS"}
+                      </span>
+                    </div>
+                    <div className="text-[11px] opacity-90">{probeResult.diagnostic_message}</div>
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-between">
                 <button 
                   type="button" 
