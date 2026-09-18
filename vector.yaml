@@ -1,0 +1,27 @@
+sources:
+  envoy_logs:
+    type: "docker_logs"
+    include_containers: ["engineering-brain-prd-envoy-1"]
+
+transforms:
+  filter_coraza:
+    type: "filter"
+    inputs: ["envoy_logs"]
+    condition: 'contains(string!(.message), "AuditLog:{\"transaction\":")'
+
+  extract_json:
+    type: "remap"
+    inputs: ["filter_coraza"]
+    source: |
+      parts = split(string!(.message), "AuditLog:", limit: 2)
+      if length(parts) == 2 {
+        . = parse_json!(parts[1])
+      }
+
+sinks:
+  management_api:
+    type: "http"
+    inputs: ["extract_json"]
+    uri: "http://management-api:8082/api/v1/events"
+    encoding:
+      codec: "json"

@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: waf_user
+      POSTGRES_PASSWORD: waf_password
+      POSTGRES_DB: waf_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  management-api:
+    build:
+      context: ./management-plane
+    environment:
+      DATABASE_URL: postgres://waf_user:waf_password@postgres:5432/waf_db?sslmode=disable
+    ports:
+      - "8082:8082"
+      - "18000:18000"
+    depends_on:
+      - postgres
+
+  vector:
+    image: timberio/vector:latest-alpine
+    volumes:
+      - ./vector.yaml:/etc/vector/vector.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - management-api
+
+  dashboard-ui:
+    build:
+      context: ./dashboard-ui
+    ports:
+      - "3050:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8082
+    depends_on:
+      - management-api
+
+  wasm-provider:
+    build:
+      context: ./data-plane/wasm-provider
+    volumes:
+      - wasm-volume:/shared
+
+  origin-mock:
+    build:
+      context: ./data-plane/origin-mock
+    ports:
+      - "8081:8081"
+
+  envoy:
+    image: envoyproxy/envoy:v1.31.0
+    volumes:
+      - ./data-plane/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - wasm-volume:/shared:ro
+    depends_on:
+      - wasm-provider
+      - origin-mock
+    ports:
+      - "8080:8080" # Proxy Port
+
+volumes:
+  wasm-volume:
+  pgdata:

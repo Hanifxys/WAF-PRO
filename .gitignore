@@ -1,0 +1,21 @@
+# System & Binaries
+.pgdata_dev/
+*.exe
+*-linux
+management-api-linux
+*.log
+logfile
+temp.tar
+.kilo/
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
