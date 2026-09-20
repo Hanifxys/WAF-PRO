@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Radio
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface CanaryDeployment {
   id: number;
@@ -88,9 +89,9 @@ rate_limits:
     try {
       setLoading(true);
       const [cRes, pRes, sRes] = await Promise.all([
-        fetch("http://localhost:8082/api/v1/canary-deployments"),
-        fetch("http://localhost:8082/api/v1/rule-profiler/stats"),
-        fetch("http://localhost:8082/api/v1/scraping-policies"),
+        fetch(`${API}/api/v1/canary-deployments`),
+        fetch(`${API}/api/v1/rule-profiler/stats`),
+        fetch(`${API}/api/v1/scraping-policies`),
       ]);
       if (cRes.ok) setCanaries((await cRes.json()) || []);
       if (pRes.ok) setProfilerStats((await pRes.json()) || []);
@@ -109,7 +110,7 @@ rate_limits:
   const handleCreateCanary = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:8082/api/v1/canary-deployments", {
+      const res = await fetch(`${API}/api/v1/canary-deployments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -132,7 +133,7 @@ rate_limits:
 
   const stepCanary = async (id: number, action: "STEP_UP" | "PROMOTE" | "ROLLBACK") => {
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/canary-deployments/${id}/step`, {
+      const res = await fetch(`${API}/api/v1/canary-deployments/${id}/step`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
@@ -147,7 +148,7 @@ rate_limits:
 
   const validateWafCode = async () => {
     try {
-      const res = await fetch("http://localhost:8082/api/v1/waf-as-code/validate", {
+      const res = await fetch(`${API}/api/v1/waf-as-code/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ spec_content: specContent }),
@@ -162,7 +163,7 @@ rate_limits:
 
   const applyWafCode = async () => {
     try {
-      const res = await fetch("http://localhost:8082/api/v1/waf-as-code/apply", {
+      const res = await fetch(`${API}/api/v1/waf-as-code/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -454,3 +455,4 @@ rate_limits:
     </div>
   );
 }
+

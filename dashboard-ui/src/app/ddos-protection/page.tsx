@@ -17,6 +17,7 @@ import {
   Settings2,
   Lock
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface DDoSPolicy {
   id: number;
@@ -70,7 +71,7 @@ export default function DDoSProtectionPage() {
   const fetchPolicies = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/ddos-policies");
+      const res = await fetch(`${API}/api/v1/ddos-policies`);
       if (res.ok) {
         const data = await res.json();
         setPolicies(Array.isArray(data) ? data : []);
@@ -90,7 +91,7 @@ export default function DDoSProtectionPage() {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const res = await fetch("http://localhost:8082/api/v1/ddos-policies", {
+      const res = await fetch(`${API}/api/v1/ddos-policies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,7 +120,7 @@ export default function DDoSProtectionPage() {
 
   const handleToggle = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/ddos-policies/${id}/toggle`, {
+      const res = await fetch(`${API}/api/v1/ddos-policies/${id}/toggle`, {
         method: "PUT"
       });
       if (res.ok) fetchPolicies();
@@ -131,7 +132,7 @@ export default function DDoSProtectionPage() {
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this L7 DDoS mitigation policy?")) return;
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/ddos-policies/${id}`, {
+      const res = await fetch(`${API}/api/v1/ddos-policies/${id}`, {
         method: "DELETE"
       });
       if (res.ok) fetchPolicies();
@@ -143,7 +144,7 @@ export default function DDoSProtectionPage() {
   const handleRunSurgeSim = async () => {
     try {
       setSimulating(true);
-      const res = await fetch("http://localhost:8082/api/v1/ddos-policies/simulate-surge", {
+      const res = await fetch(`${API}/api/v1/ddos-policies/simulate-surge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -599,3 +600,4 @@ export default function DDoSProtectionPage() {
     </div>
   );
 }
+

@@ -75,8 +75,8 @@ func main() {
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300, 
+		AllowCredentials: false,
+		MaxAge:           300,
 	})
 	r.Use(corsMiddleware.Handler)
 	
@@ -314,6 +314,51 @@ func main() {
 		// 4. Client-Side Bot Managed JS Challenge Engine
 		r.Get("/bot-challenge/interstitial", getBotChallengeInterstitial)
 		r.Post("/bot-challenge/verify", verifyBotChallenge)
+
+		// Phase 75: Global Edge Routing
+		registerEdgeRoutingRoutes(r)
+
+		// Phase 76: WAF Control Plane HA
+		registerControlPlaneHARoutes(r)
+
+		// Phase 77: WAF Data Plane Auto-Healing & Resilience
+		registerResilienceRoutes(r)
+
+		// Phase 79: WAF Chaos Lab & Security Invariance
+		registerChaosLabRoutes(r)
+
+		// Phase 80: WAF Performance Lab
+		registerPerformanceLabRoutes(r)
+
+		// Option 1: Policy Engine 2.0 & Evaluation Chain
+		registerPolicyEngineV2Routes(r)
+
+		// Enterprise Roadmap: Rule Lifecycle & Granular Exception Engine
+		registerRuleLifecycleRoutes(r)
+
+		// Enterprise Roadmap: WAF Learning Mode 2.0 & Positive Security Model
+		registerLearningPositiveRoutes(r)
+
+		// Enterprise Roadmap: Attack Intelligence, Dynamic Confidence & Campaign Correlation
+		registerAttackIntelligenceRoutes(r)
+
+		// Enterprise Roadmap: IP Intelligence, Incident Lifecycle & Risk Posture Engine
+		registerRiskPostureRoutes(r)
+
+		// Enterprise Roadmap: OWASP API Abuse, Operational Virtual Patching & Emergency Mode
+		registerAPIAbuseEmergencyRoutes(r)
+
+		// Enterprise Roadmap: Policy Simulator, Explainability (Why Blocked/Allowed) & Exception Expiry
+		registerPolicySimulatorExplainabilityRoutes(r)
+
+		// Enterprise Roadmap: Governance Posture, Drift Detection, WAF Health & Change Management
+		registerGovernancePostureRoutes(r)
+
+		// Enterprise Roadmap: Rule Lab, Regression Pack, Policy Versioning & Audit Trail 2.0
+		registerRuleLabVersioningRoutes(r)
+
+		// Kubernetes Cloud-Native Operator & CRD Sync
+		registerK8sSyncRoutes(r)
 	})
 
 	// 4. Start xDS Server
@@ -1014,6 +1059,51 @@ func initSchema() {
 		  ('CVE-2017-5638', 'Apache Struts2 Content-Type OGNL', 'Apache Struts', 'CRITICAL', 10.0, 'Jakarta Multipart Parser', 'SecRule REQUEST_HEADERS:Content-Type "@rx (?i)%\{[^\}]*(?:multipart/form-data|#_memberAccess)" "id:40005,phase:1,deny,status:403,log,msg:''CVE-2017-5638 Struts2 Multipart OGNL Blocked''"', FALSE, 40005)
 		ON CONFLICT (cve_id) DO NOTHING;
 	`)
+
+	// Phase 75: Global Edge Routing Schema
+	initEdgeRoutingSchema(db)
+
+	// Phase 76: WAF Control Plane HA Schema & Heartbeat
+	initControlPlaneHASchema(db)
+
+	// Phase 77: WAF Data Plane Auto-Healing Schema
+	initAutoHealingSchema(db)
+
+	// Phase 79: WAF Chaos Lab Schema
+	initChaosLabSchema(db)
+
+	// Phase 80: WAF Performance Lab Schema
+	initPerformanceLabSchema(db)
+
+	// Option 1: Policy Engine 2.0 Schema
+	initPolicyEngineV2Schema(db)
+
+	// Enterprise Roadmap: Rule Lifecycle & Granular Exception Schema
+	initRuleLifecycleSchema(db)
+
+	// Enterprise Roadmap: WAF Learning Mode 2.0 & Positive Security Schema
+	initLearningPositiveSchema(db)
+
+	// Enterprise Roadmap: Attack Intelligence, Dynamic Confidence & Campaign Correlation Schema
+	initAttackIntelligenceSchema(db)
+
+	// Enterprise Roadmap: IP Intelligence, Incident Lifecycle & Risk Posture Schema
+	initRiskPostureSchema(db)
+
+	// Enterprise Roadmap: OWASP API Abuse, Operational Virtual Patching & Emergency Mode Schema
+	initAPIAbuseEmergencySchema(db)
+
+	// Enterprise Roadmap: Policy Simulator, Explainability & Exception Expiry Schema
+	initPolicySimulatorExplainabilitySchema(db)
+
+	// Enterprise Roadmap: Governance Posture, Drift Detection, WAF Health & Change Management Schema
+	initGovernancePostureSchema(db)
+
+	// Enterprise Roadmap: Rule Lab, Regression Pack, Policy Versioning & Audit Trail 2.0 Schema
+	initRuleLabVersioningSchema(db)
+
+	// Kubernetes Cloud-Native Operator & CRD Sync Schema
+	initK8sSyncSchema(db)
 
 	log.Println("Database schema initialized successfully")
 }

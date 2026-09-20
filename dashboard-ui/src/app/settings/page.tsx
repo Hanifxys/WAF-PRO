@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Settings, Server, Cpu, Database, Activity, RefreshCw, Shield, Terminal, CheckCircle2, AlertCircle } from "lucide-react";
-
+import { API } from "@/lib/api";
 interface DiagnosticsData {
   status: string;
   timestamp: string;
@@ -47,7 +47,6 @@ export default function SettingsPage() {
   const [diag, setDiag] = useState<DiagnosticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchDiagnostics = async () => {
     setLoading(true);

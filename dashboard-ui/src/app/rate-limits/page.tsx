@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Gauge, Plus, Trash2, ShieldAlert, CheckCircle2, Clock, Zap } from "lucide-react";
-
+import { API } from "@/lib/api";
 interface RateLimit {
   id: number;
   path_prefix: string;
@@ -23,7 +23,6 @@ export default function RateLimitsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchRateLimits = async () => {
     setLoading(true);

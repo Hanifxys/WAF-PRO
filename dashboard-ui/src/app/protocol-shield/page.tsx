@@ -18,6 +18,7 @@ import {
   Check,
   X
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface ProtocolPolicy {
   id: number;
@@ -77,8 +78,8 @@ export default function ProtocolShieldPage() {
     try {
       setLoading(true);
       const [protoRes, abuseRes] = await Promise.all([
-        fetch("http://localhost:8082/api/v1/protocol-policies"),
-        fetch("http://localhost:8082/api/v1/abuse-policies")
+        fetch(`${API}/api/v1/protocol-policies`),
+        fetch(`${API}/api/v1/abuse-policies`)
       ]);
 
       if (protoRes.ok) {
@@ -104,7 +105,7 @@ export default function ProtocolShieldPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8082/api/v1/protocol-policies", {
+      const res = await fetch(`${API}/api/v1/protocol-policies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -132,7 +133,7 @@ export default function ProtocolShieldPage() {
 
   const handleToggleProtocol = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/protocol-policies/${id}/toggle`, {
+      const res = await fetch(`${API}/api/v1/protocol-policies/${id}/toggle`, {
         method: "PUT"
       });
       if (res.ok) {
@@ -146,7 +147,7 @@ export default function ProtocolShieldPage() {
   const handleDeleteProtocol = async (id: number) => {
     if (!confirm("Are you sure you want to delete this protocol policy?")) return;
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/protocol-policies/${id}`, {
+      const res = await fetch(`${API}/api/v1/protocol-policies/${id}`, {
         method: "DELETE"
       });
       if (res.ok) {
@@ -161,7 +162,7 @@ export default function ProtocolShieldPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8082/api/v1/abuse-policies", {
+      const res = await fetch(`${API}/api/v1/abuse-policies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -189,7 +190,7 @@ export default function ProtocolShieldPage() {
   const handleDeleteAbuse = async (id: number) => {
     if (!confirm("Are you sure you want to delete this credential abuse policy?")) return;
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/abuse-policies/${id}`, {
+      const res = await fetch(`${API}/api/v1/abuse-policies/${id}`, {
         method: "DELETE"
       });
       if (res.ok) {
@@ -706,3 +707,4 @@ export default function ProtocolShieldPage() {
     </div>
   );
 }
+

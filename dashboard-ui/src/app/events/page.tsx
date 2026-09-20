@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ShieldAlert, Eye, Server, Activity, Search, Ban, X, CheckCircle2, AlertCircle, Mail, Send, ChevronDown, Check, FileText, CheckCheck, Sliders } from "lucide-react";
-
+import { API } from "@/lib/api";
 interface SecurityEvent {
   id: number;
   request_id: string;
@@ -48,7 +48,6 @@ export default function EventsPage() {
     reason: "Activity Enable Full Blocking RMS AJAKTEMAN",
   });
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchEvents = async () => {
     try {

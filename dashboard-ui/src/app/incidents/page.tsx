@@ -18,6 +18,7 @@ import {
   Activity,
   Layers
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface Incident {
   id: number;
@@ -57,7 +58,6 @@ export default function IncidentsPage() {
   const [timelineEvents, setTimelineEvents] = useState<SecurityEvent[]>([]);
   const [timelineLoading, setTimelineLoading] = useState(false);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchIncidents = async () => {
     setLoading(true);
@@ -476,3 +476,4 @@ export default function IncidentsPage() {
     </div>
   );
 }
+

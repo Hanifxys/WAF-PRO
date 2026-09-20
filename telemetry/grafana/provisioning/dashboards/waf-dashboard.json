@@ -1,0 +1,31 @@
+{
+  "title": "WAF Pro Metrics",
+  "uid": "waf-pro-metrics",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Envoy Total Requests",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(envoy_http_downstream_rq_total[1m])",
+          "legendFormat": "{{envoy_http_conn_manager_prefix}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Blocked Requests (HTTP 403)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(envoy_http_downstream_rq_xx{envoy_response_code_class=\"4\"}[1m])",
+          "legendFormat": "4xx Responses"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 30,
+  "timezone": "browser",
+  "refresh": "5s"
+}

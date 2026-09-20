@@ -17,6 +17,7 @@ import {
   Check,
   AlertCircle
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface Application {
   id: number;
@@ -56,7 +57,7 @@ export default function ApplicationOnboardingPage() {
   const fetchApps = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/applications");
+      const res = await fetch(`${API}/api/v1/applications`);
       if (res.ok) {
         const json = await res.json();
         setApps(json || []);
@@ -77,7 +78,7 @@ export default function ApplicationOnboardingPage() {
     setIsSubmitting(true);
     try {
       // 1. Create Application in LEARNING status
-      const res = await fetch("http://localhost:8082/api/v1/applications", {
+      const res = await fetch(`${API}/api/v1/applications`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -93,7 +94,7 @@ export default function ApplicationOnboardingPage() {
       if (res.ok) {
         const created = await res.json();
         // 2. Set Security Headers
-        await fetch(`http://localhost:8082/api/v1/applications/${created.id}/security-headers`, {
+        await fetch(`${API}/api/v1/applications/${created.id}/security-headers`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -125,7 +126,7 @@ export default function ApplicationOnboardingPage() {
     setIsProbing(true);
     setProbeResult(null);
     try {
-      const res = await fetch("http://localhost:8082/api/v1/applications/verify-connectivity", {
+      const res = await fetch(`${API}/api/v1/applications/verify-connectivity`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -156,7 +157,7 @@ export default function ApplicationOnboardingPage() {
   const handlePromoteLearning = async (appId: number) => {
     setPromotingId(appId);
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/applications/${appId}/promote-learning`, {
+      const res = await fetch(`${API}/api/v1/applications/${appId}/promote-learning`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -517,3 +518,4 @@ export default function ApplicationOnboardingPage() {
     </div>
   );
 }
+

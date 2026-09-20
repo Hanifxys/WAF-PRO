@@ -22,6 +22,18 @@ static_resources:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                 stat_prefix: ingress_http
                 generate_request_id: true
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                      log_format:
+                        json_format:
+                          type: "access_log"
+                          method: "%REQ(:METHOD)%"
+                          path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                          client_ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+                          response_code: "%RESPONSE_CODE%"
+
                 route_config:
                   name: local_route
                   virtual_hosts:
@@ -55,9 +67,24 @@ static_resources:
                         - X-Powered-By
                       routes:
                         - match:
+                            prefix: "/.waf-challenge/"
+                          route:
+                            cluster: management_api
+                            prefix_rewrite: "/api/v1/bot-challenge/"
+                        - match:
                             prefix: "/api/login"
                           route:
                             cluster: origin_mock
+                            rate_limits:
+                              - actions:
+                                  - request_headers:
+                                      header_name: ":path"
+                                      descriptor_key: "request_path"
+                                  - remote_address: {}
+                              - actions:
+                                  - request_headers:
+                                      header_name: "X-Login-Username"
+                                      descriptor_key: "login_username"
                           typed_per_filter_config:
                             envoy.filters.http.local_ratelimit:
                               "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
@@ -82,10 +109,31 @@ static_resources:
                                     key: x-local-rate-limit
                                     value: 'true'
                         - match:
-                            prefix: "/"
+                            prefix: "/api/search"
                           route:
                             cluster: origin_mock
+                            rate_limits:
+                              - actions:
+                                  - request_headers:
+                                      header_name: "X-User-Class"
+                                      descriptor_key: "user_class"
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: podomoro_origin
+                            host_rewrite_literal: "podomoro-timer-flame.vercel.app"
                 http_filters:
+                  - name: envoy.filters.http.ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+                      domain: waf_global
+                      failure_mode_deny: false
+                      rate_limit_service:
+                        grpc_service:
+                          envoy_grpc:
+                            cluster_name: rate_limit_service
+                          timeout: 0.25s
+                        transport_api_version: V3
                   - name: envoy.filters.http.local_ratelimit
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
@@ -143,6 +191,31 @@ static_resources:
                     socket_address:
                       address: management-api
                       port_value: 18000
+    - name: rate_limit_service
+      connect_timeout: 0.25s
+      type: STRICT_DNS
+      http2_protocol_options: {}
+      load_assignment:
+        cluster_name: rate_limit_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: ratelimit
+                      port_value: 8081
+    - name: management_api
+      connect_timeout: 0.25s
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: management_api
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: management-api
+                      port_value: 8082
     - name: origin_mock
       connect_timeout: 0.25s
       type: STRICT_DNS
@@ -156,3 +229,22 @@ static_resources:
                     socket_address:
                       address: origin-mock
                       port_value: 8081
+    - name: podomoro_origin
+      connect_timeout: 5s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: podomoro_origin
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: podomoro-timer-flame.vercel.app
+                      port_value: 443
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          sni: podomoro-timer-flame.vercel.app

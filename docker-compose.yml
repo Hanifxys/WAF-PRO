@@ -45,6 +45,65 @@ services:
     volumes:
       - wasm-volume:/shared
 
+  ai-engine:
+    build:
+      context: ./ai-engine
+    environment:
+      DATABASE_URL: postgres://waf_user:waf_password@postgres:5432/waf_db?sslmode=disable
+    depends_on:
+      - postgres
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  ratelimit:
+    image: envoyproxy/ratelimit:master
+    environment:
+      - USE_STATSD=false
+      - REDIS_SOCKET_TYPE=tcp
+      - REDIS_URL=redis:6379
+      - RUNTIME_ROOT=/data
+      - RUNTIME_SUBDIRECTORY=ratelimit
+      - RUNTIME_WATCH_ROOT=false
+      - LOG_LEVEL=info
+    volumes:
+      - ./telemetry/ratelimit:/data/ratelimit:ro
+    ports:
+      - "8083:8081"
+      - "6070:6070"
+    depends_on:
+      - redis
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.3
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    ports:
+      - "16686:16686"
+      - "9411:9411"
+
   origin-mock:
     build:
       context: ./data-plane/origin-mock
@@ -55,13 +114,39 @@ services:
     image: envoyproxy/envoy:v1.31.0
     volumes:
       - ./data-plane/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./data-plane/envoy/certs:/etc/envoy/certs:ro
       - wasm-volume:/shared:ro
     depends_on:
       - wasm-provider
       - origin-mock
     ports:
       - "8080:8080" # Proxy Port
+      - "8443:8443"
+      - "9901:9901"
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./telemetry/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./telemetry/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
 
 volumes:
   wasm-volume:
   pgdata:
+  prometheus-data:
+  grafana-data:
+  esdata:

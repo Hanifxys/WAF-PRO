@@ -1,0 +1,28 @@
+domain: waf_global
+descriptors:
+  - key: request_path
+    value: "/api/login"
+    descriptors:
+      - key: remote_address
+        rate_limit:
+          unit: minute
+          requests_per_unit: 10
+  - key: generic_key
+    value: "global_limit"
+    rate_limit:
+      unit: minute
+      requests_per_unit: 5000
+  - key: login_username
+    rate_limit:
+      unit: minute
+      requests_per_unit: 5
+  - key: user_class
+    value: "anonymous"
+    rate_limit:
+      unit: minute
+      requests_per_unit: 10
+  - key: user_class
+    value: "authenticated"
+    rate_limit:
+      unit: minute
+      requests_per_unit: 100

@@ -17,6 +17,7 @@ import {
   Layers,
   Upload
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface DiscoveredAsset {
   id: number;
@@ -45,7 +46,7 @@ export default function AssetDiscoveryPage() {
   const fetchAssets = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/assets");
+      const res = await fetch(`${API}/api/v1/assets`);
       if (res.ok) {
         const data = await res.json();
         setAssets(data || []);
@@ -65,7 +66,7 @@ export default function AssetDiscoveryPage() {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const res = await fetch("http://localhost:8082/api/v1/assets/classify", {
+      const res = await fetch(`${API}/api/v1/assets/classify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -92,7 +93,7 @@ export default function AssetDiscoveryPage() {
 
   const toggleSensitivity = async (id: number, current: boolean) => {
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/assets/${id}/tag-sensitive`, {
+      const res = await fetch(`${API}/api/v1/assets/${id}/tag-sensitive`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_sensitive: !current }),
@@ -393,3 +394,4 @@ export default function AssetDiscoveryPage() {
     </div>
   );
 }
+

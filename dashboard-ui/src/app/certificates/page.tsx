@@ -15,6 +15,7 @@ import {
   FileCheck,
   Radio
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface Certificate {
   id: number;
@@ -48,7 +49,7 @@ export default function CertificatesPage() {
   const fetchCertificates = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/certificates");
+      const res = await fetch(`${API}/api/v1/certificates`);
       if (res.ok) {
         const data = await res.json();
         setCerts(Array.isArray(data) ? data : []);
@@ -68,7 +69,7 @@ export default function CertificatesPage() {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const res = await fetch("http://localhost:8082/api/v1/certificates", {
+      const res = await fetch(`${API}/api/v1/certificates`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -96,7 +97,7 @@ export default function CertificatesPage() {
 
   const handleToggleMTLS = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/certificates/${id}/toggle-mtls`, {
+      const res = await fetch(`${API}/api/v1/certificates/${id}/toggle-mtls`, {
         method: "PUT"
       });
       if (res.ok) {
@@ -110,7 +111,7 @@ export default function CertificatesPage() {
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to retire this TLS certificate? Edge TLS termination may be disrupted.")) return;
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/certificates/${id}`, {
+      const res = await fetch(`${API}/api/v1/certificates/${id}`, {
         method: "DELETE"
       });
       if (res.ok) {
@@ -455,3 +456,4 @@ export default function CertificatesPage() {
     </div>
   );
 }
+

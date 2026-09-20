@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Cpu
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface IdentityPolicy {
   id: number;
@@ -63,8 +64,8 @@ export default function IdentityJWTPage() {
     try {
       setLoading(true);
       const [idRes, jwtRes] = await Promise.all([
-        fetch("http://localhost:8082/api/v1/identity-policies"),
-        fetch("http://localhost:8082/api/v1/jwt-policies"),
+        fetch(`${API}/api/v1/identity-policies`),
+        fetch(`${API}/api/v1/jwt-policies`),
       ]);
       if (idRes.ok) setIdentityPolicies((await idRes.json()) || []);
       if (jwtRes.ok) setJwtPolicies((await jwtRes.json()) || []);
@@ -83,7 +84,7 @@ export default function IdentityJWTPage() {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const res = await fetch("http://localhost:8082/api/v1/identity-policies", {
+      const res = await fetch(`${API}/api/v1/identity-policies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -107,7 +108,7 @@ export default function IdentityJWTPage() {
 
   const handleDeleteIdentity = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/identity-policies/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API}/api/v1/identity-policies/${id}`, { method: "DELETE" });
       if (res.ok) {
         setIdentityPolicies(identityPolicies.filter(p => p.id !== id));
       }
@@ -120,7 +121,7 @@ export default function IdentityJWTPage() {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const res = await fetch("http://localhost:8082/api/v1/jwt-policies", {
+      const res = await fetch(`${API}/api/v1/jwt-policies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -147,7 +148,7 @@ export default function IdentityJWTPage() {
 
   const handleDeleteJWT = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/jwt-policies/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API}/api/v1/jwt-policies/${id}`, { method: "DELETE" });
       if (res.ok) {
         setJwtPolicies(jwtPolicies.filter(p => p.id !== id));
       }
@@ -482,3 +483,4 @@ export default function IdentityJWTPage() {
     </div>
   );
 }
+

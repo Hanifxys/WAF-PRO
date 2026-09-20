@@ -1,8 +1,7 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { ShieldAlert, Save, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
-
+import { API } from "@/lib/api";
 export default function RulesPage() {
   const [rules, setRules] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -13,7 +12,7 @@ export default function RulesPage() {
     setLoading(true);
     setStatus({ type: null, message: "" });
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082'}/api/v1/configs`);
+      const res = await fetch(`${API}/api/v1/configs`);
       if (res.ok) {
         const data = await res.json();
         if (data && data.length > 0) {
@@ -40,7 +39,7 @@ export default function RulesPage() {
     try {
       // The API endpoint handles PUT to /configs/{id}
       // Since it's MVP, we just use /configs/1
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8082'}/api/v1/configs/1`, {
+      const res = await fetch(`${API}/api/v1/configs/1`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

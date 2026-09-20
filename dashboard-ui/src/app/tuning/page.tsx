@@ -8,6 +8,7 @@ import {
   Target, Globe, ScanLine, Sparkles, Play, Zap, Check, Activity,
   FileCode2, ShieldAlert
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface RuleException {
   id: number;
@@ -101,7 +102,6 @@ export default function TuningPage() {
   const [replayResult, setReplayResult] = useState<ReplayResult | null>(null);
   const [replayRunning, setReplayRunning] = useState(false);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchExceptions = useCallback(async () => {
     setLoading(true);
@@ -767,3 +767,4 @@ SecRuleRemoveById ${id}`}
     </div>
   );
 }
+

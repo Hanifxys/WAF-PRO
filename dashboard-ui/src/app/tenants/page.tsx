@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Building2, 
-  Plus, 
-  RefreshCw, 
-  CheckCircle2, 
-  Layers, 
-  Zap, 
-  Gauge, 
-  ShieldCheck, 
+import {
+  Building2,
+  Plus,
+  RefreshCw,
+  CheckCircle2,
+  Layers,
+  Zap,
+  Gauge,
+  ShieldCheck,
   Lock,
   PieChart
 } from "lucide-react";
-
+import { API } from "@/lib/api";
 interface Tenant {
   id: number;
   name: string;
@@ -54,7 +54,7 @@ export default function TenantsPage() {
   const fetchTenants = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/tenants");
+      const res = await fetch(`${API}/api/v1/tenants`);
       if (res.ok) {
         const json: Tenant[] = await res.json();
         setTenants(json || []);
@@ -63,7 +63,7 @@ export default function TenantsPage() {
         const usageMap: Record<number, TenantUsage> = {};
         for (const t of json) {
           try {
-            const uRes = await fetch(`http://localhost:8082/api/v1/tenants/${t.id}/usage`);
+            const uRes = await fetch(`${API}/api/v1/tenants/${t.id}/usage`);
             if (uRes.ok) {
               usageMap[t.id] = await uRes.json();
             }
@@ -88,7 +88,7 @@ export default function TenantsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8082/api/v1/tenants", {
+      const res = await fetch(`${API}/api/v1/tenants`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -304,3 +304,4 @@ export default function TenantsPage() {
     </div>
   );
 }
+

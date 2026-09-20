@@ -18,6 +18,17 @@ transforms:
         . = parse_json!(parts[1])
       }
 
+  filter_access:
+    type: "filter"
+    inputs: ["envoy_logs"]
+    condition: 'contains(string!(.message), "\"type\":\"access_log\"")'
+
+  extract_access:
+    type: "remap"
+    inputs: ["filter_access"]
+    source: |
+      . = parse_json!(string!(.message))
+
 sinks:
   management_api:
     type: "http"
@@ -25,3 +36,17 @@ sinks:
     uri: "http://management-api:8082/api/v1/events"
     encoding:
       codec: "json"
+
+  sequence_api:
+    type: "http"
+    inputs: ["extract_access"]
+    uri: "http://management-api:8082/api/v1/telemetry/access-log"
+    encoding:
+      codec: "json"
+
+  elasticsearch:
+    type: "elasticsearch"
+    inputs: ["extract_json"]
+    endpoints: ["http://elasticsearch:9200"]
+    mode: "bulk"
+    index: "waf-audit-logs-%F"

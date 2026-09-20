@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Lock, Plus, Trash2, ShieldAlert, CheckCircle2, ShieldCheck, Power, AlertTriangle } from "lucide-react";
-
+import { API } from "@/lib/api";
 interface DLPRule {
   id: number;
   rule_id: number;
@@ -29,7 +29,6 @@ export default function DLPPage() {
   const [action, setAction] = useState("BLOCK");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchDLP = async () => {
     setLoading(true);

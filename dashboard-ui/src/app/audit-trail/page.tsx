@@ -15,6 +15,7 @@ import {
   Database,
   Hash
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface AuditLog {
   id: number;
@@ -40,7 +41,7 @@ export default function AuditTrailPage() {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      let url = "http://localhost:8082/api/v1/audit-logs";
+      let url = `${API}/api/v1/audit-logs`;
       if (actionFilter !== "ALL") {
         url += `?action=${actionFilter}`;
       }
@@ -63,7 +64,7 @@ export default function AuditTrailPage() {
   const handleExportBackup = async () => {
     try {
       setDownloading(true);
-      const res = await fetch("http://localhost:8082/api/v1/system/backup");
+      const res = await fetch(`${API}/api/v1/system/backup`);
       if (res.ok) {
         const bundle = await res.json();
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bundle, null, 2));
@@ -91,7 +92,7 @@ export default function AuditTrailPage() {
     try {
       setRestoring(true);
       const parsed = JSON.parse(restoreJSON);
-      const res = await fetch("http://localhost:8082/api/v1/system/restore", {
+      const res = await fetch(`${API}/api/v1/system/restore`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed)
@@ -365,3 +366,4 @@ export default function AuditTrailPage() {
     </div>
   );
 }
+

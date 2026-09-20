@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: waf-gateway
+  labels:
+    app: waf-gateway
+spec:
+  replicas: 3 # Global Edge HA
+  selector:
+    matchLabels:
+      app: waf-gateway
+  template:
+    metadata:
+      labels:
+        app: waf-gateway
+    spec:
+      containers:
+      - name: envoy
+        image: envoyproxy/envoy:v1.31.0
+        ports:
+        - containerPort: 8443
+          name: https
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: envoy-config
+          mountPath: /etc/envoy
+      volumes:
+      - name: envoy-config
+        configMap:
+          name: waf-gateway-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: waf-gateway-svc
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 443
+    targetPort: 8443
+    name: https
+  - port: 80
+    targetPort: 8080
+    name: http
+  selector:
+    app: waf-gateway

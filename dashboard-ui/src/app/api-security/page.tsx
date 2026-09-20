@@ -2,21 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { 
-  Network, 
-  RefreshCw, 
-  ShieldCheck, 
-  ShieldAlert, 
-  Ban, 
-  CheckCircle2, 
-  AlertCircle, 
-  Search, 
-  Filter, 
-  Zap, 
-  PlusCircle, 
-  Eye, 
+import {
+  Network,
+  RefreshCw,
+  ShieldCheck,
+  ShieldAlert,
+  Ban,
+  CheckCircle2,
+  AlertCircle,
+  Search,
+  Filter,
+  Zap,
+  PlusCircle,
+  Eye,
   Layers
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface APIEndpoint {
   id: number;
@@ -46,7 +47,6 @@ export default function APISecurityPage() {
   const [manualPath, setManualPath] = useState("");
   const [manualStatus, setManualStatus] = useState("APPROVED");
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchEndpoints = async () => {
     setLoading(true);
@@ -488,3 +488,4 @@ export default function APISecurityPage() {
     </div>
   );
 }
+

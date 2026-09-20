@@ -16,6 +16,7 @@ import {
   Fingerprint,
   Zap
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 export default function InvestigationToolsPage() {
   const [activeTool, setActiveTool] = useState<"explain" | "why_not" | "flight" | "threat" | "redact">("explain");
@@ -50,7 +51,7 @@ export default function InvestigationToolsPage() {
   const handleExplain = async () => {
     try {
       setExplainLoading(true);
-      const res = await fetch(`http://localhost:8082/api/v1/investigation/explain-block/${explainEventID}`);
+      const res = await fetch(`${API}/api/v1/investigation/explain-block/${explainEventID}`);
       if (res.ok) {
         setExplainResult(await res.json());
       } else {
@@ -86,7 +87,7 @@ export default function InvestigationToolsPage() {
   const handleWhyNot = async () => {
     try {
       setWhyLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/investigation/why-not-blocked", {
+      const res = await fetch(`${API}/api/v1/investigation/why-not-blocked`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -107,7 +108,7 @@ export default function InvestigationToolsPage() {
 
   const fetchFlightSessions = async () => {
     try {
-      const res = await fetch("http://localhost:8082/api/v1/flight-recorder/status");
+      const res = await fetch(`${API}/api/v1/flight-recorder/status`);
       if (res.ok) {
         setFlightSessions(await res.json());
       }
@@ -119,7 +120,7 @@ export default function InvestigationToolsPage() {
   const startFlight = async () => {
     try {
       setFlightLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/flight-recorder/start", {
+      const res = await fetch(`${API}/api/v1/flight-recorder/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -140,7 +141,7 @@ export default function InvestigationToolsPage() {
 
   const stopFlight = async () => {
     try {
-      await fetch("http://localhost:8082/api/v1/flight-recorder/stop", { method: "POST" });
+      await fetch(`${API}/api/v1/flight-recorder/stop`, { method: "POST" });
       await fetchFlightSessions();
     } catch (err) {
       console.error(err);
@@ -150,7 +151,7 @@ export default function InvestigationToolsPage() {
   const handleThreatCorrelate = async () => {
     try {
       setThreatLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/threat-intel/correlate", {
+      const res = await fetch(`${API}/api/v1/threat-intel/correlate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_ip: threatIP }),
@@ -167,7 +168,7 @@ export default function InvestigationToolsPage() {
 
   const handleRedact = async () => {
     try {
-      const res = await fetch("http://localhost:8082/api/v1/dlp/redact", {
+      const res = await fetch(`${API}/api/v1/dlp/redact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ raw_text: redactText, mode: redactMode }),
@@ -293,7 +294,7 @@ export default function InvestigationToolsPage() {
                 <button
                   onClick={async () => {
                     try {
-                      const res = await fetch("http://localhost:8082/api/v1/exceptions/auto-generate", {
+                      const res = await fetch(`${API}/api/v1/exceptions/auto-generate`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -574,3 +575,4 @@ export default function InvestigationToolsPage() {
     </div>
   );
 }
+

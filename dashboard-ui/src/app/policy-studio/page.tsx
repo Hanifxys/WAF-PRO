@@ -6,6 +6,7 @@ import {
   ShieldCheck, Plus, Trash2, ShieldAlert, CheckCircle2, Globe,
   FileCode2, Power, Clock, Tag, AlertTriangle, ChevronRight, RefreshCw
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface CustomRule {
   id: number;
@@ -68,7 +69,6 @@ export default function PolicyStudioPage() {
   const [geoReason, setGeoReason] = useState("Enterprise Perimeter Threat Fencing");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const TTL_OPTIONS = [
     { label: "Permanent", value: "0" },
@@ -395,3 +395,4 @@ export default function PolicyStudioPage() {
     </div>
   );
 }
+

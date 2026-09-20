@@ -19,6 +19,7 @@ import {
   Zap,
   Activity
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface Application {
   id: number;
@@ -48,7 +49,6 @@ export default function ApplicationsPage() {
   const [wizParanoia, setWizParanoia] = useState(1);
   const [wizStatus, setWizStatus] = useState<Application["status"]>("LEARNING");
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchApps = async () => {
     setLoading(true);
@@ -512,3 +512,4 @@ export default function ApplicationsPage() {
     </div>
   );
 }
+

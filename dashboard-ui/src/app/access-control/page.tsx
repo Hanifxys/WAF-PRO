@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Users, KeyRound, Plus, Trash2, ShieldCheck, CheckCircle2, Copy, AlertTriangle, RefreshCw, Lock, Sparkles, UserCheck } from "lucide-react";
-
-const API = "http://localhost:8082/api/v1";
-
+import { API } from "@/lib/api";
 interface User {
   id: number;
   username: string;

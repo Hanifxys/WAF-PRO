@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Ban, Trash2, PlusCircle, RefreshCw, Shield, AlertCircle, CheckCircle2 } from "lucide-react";
-
+import { API } from "@/lib/api";
 interface BlockedIP {
   id: number;
   ip_address: string;
@@ -18,8 +18,6 @@ export default function BlockedIPsPage() {
   const [newReason, setNewReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error" | null; message: string }>({ type: null, message: "" });
-
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchBlockedIPs = async () => {
     setLoading(true);

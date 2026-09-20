@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   CheckCircle2
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface CapacityMetrics {
   cluster_max_rps: number;
@@ -34,7 +35,7 @@ export default function CapacityPage() {
   const fetchCapacity = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/capacity/metrics");
+      const res = await fetch(`${API}/api/v1/capacity/metrics`);
       if (res.ok) {
         const json = await res.json();
         setMetrics(json);
@@ -191,3 +192,4 @@ export default function CapacityPage() {
     </div>
   );
 }
+

@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { History, RotateCcw, Eye, GitCompare, RefreshCw, ChevronDown, ChevronUp, Shield, Clock, FileText } from "lucide-react";
-const API = "http://localhost:8082/api/v1";
-
+import { API } from "@/lib/api";
 interface Snapshot {
   id: number;
   version: number;

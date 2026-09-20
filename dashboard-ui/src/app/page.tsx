@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Shield, ShieldAlert, Activity, ArrowUpRight, FileCode2, Clock, Ban, Zap, AlertTriangle } from "lucide-react";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
-
+import { API } from "@/lib/api";
 interface SecurityEvent {
   id: number;
   request_id: string;

@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Radar, Plus, Trash2, Search, ShieldAlert, RefreshCw, Globe, Zap, AlertTriangle, CheckCircle2, ShieldCheck, Flame, Cpu } from "lucide-react";
-
-const API = "http://localhost:8082/api/v1";
-
+import { API } from "@/lib/api";
 interface ThreatIndicator {
   id: number;
   indicator: string;

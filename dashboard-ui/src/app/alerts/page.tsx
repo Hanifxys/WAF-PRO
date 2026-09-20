@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { Bell, Plus, Trash2, ToggleLeft, ToggleRight, Edit2, CheckCircle2, Zap, Activity, ShieldAlert, RefreshCw, Save, Clock } from "lucide-react";
-const API = "http://localhost:8082/api/v1";
-
+import { API } from "@/lib/api";
 interface AlertRuleItem {
   id: number;
   name: string;

@@ -13,6 +13,7 @@ import {
   Settings,
   Layers
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface APISchema {
   id: number;
@@ -58,7 +59,7 @@ export default function SchemaEnforcementPage() {
   const fetchSchemas = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/schemas/1");
+      const res = await fetch(`${API}/api/v1/schemas/1`);
       if (res.ok) {
         const data = await res.json();
         setSchemas(data || []);
@@ -78,7 +79,7 @@ export default function SchemaEnforcementPage() {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const res = await fetch("http://localhost:8082/api/v1/schemas/import", {
+      const res = await fetch(`${API}/api/v1/schemas/import`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -103,7 +104,7 @@ export default function SchemaEnforcementPage() {
 
   const handleModeChange = async (id: number, newMode: string) => {
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/schemas/${id}/mode`, {
+      const res = await fetch(`${API}/api/v1/schemas/${id}/mode`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enforcement_mode: newMode }),
@@ -373,3 +374,4 @@ export default function SchemaEnforcementPage() {
     </div>
   );
 }
+

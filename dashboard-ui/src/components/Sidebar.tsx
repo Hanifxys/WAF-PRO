@@ -31,6 +31,8 @@ const navItems = [
   { name: "Incidents", href: "/incidents", icon: Flame },
   { name: "Threat Intel", href: "/threat-intel", icon: Radar },
   { name: "Bot Shield", href: "/bot-management", icon: Bot },
+  { name: "Rule Lab", href: "/rule-lab", icon: FlaskConical },
+  { name: "Governance & Drift", href: "/governance", icon: ShieldCheck },
   { name: "Simulator", href: "/simulator", icon: FlaskConical },
   { name: "Events", href: "/events", icon: ShieldAlert },
   { name: "Blocked IPs", href: "/blocked-ips", icon: Ban },

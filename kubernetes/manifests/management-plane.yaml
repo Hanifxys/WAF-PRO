@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: management-plane
+  labels:
+    app: management-plane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: management-plane
+  template:
+    metadata:
+      labels:
+        app: management-plane
+    spec:
+      containers:
+      - name: api
+        image: wafpro/management-api:v1
+        ports:
+        - containerPort: 8082
+          name: rest
+        - containerPort: 18000
+          name: grpc-xds
+        env:
+        - name: DB_HOST
+          value: "postgres-svc"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: management-plane-svc
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8082
+    targetPort: 8082
+    name: rest
+  - port: 18000
+    targetPort: 18000
+    name: grpc-xds
+  selector:
+    app: management-plane

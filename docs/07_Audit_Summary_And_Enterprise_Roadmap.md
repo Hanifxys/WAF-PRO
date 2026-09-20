@@ -1,939 +1,1214 @@
-Yes. **But at this point I would stop adding ordinary WAF features and move the roadmap into the capabilities that make it production-grade and genuinely differentiated.**
+Nah, **paham sekarang**. Maksud kamu bukan “tambahkan Kubernetes, eBPF, AI, microservices, dll.” sebanyak-banyaknya.
 
-Your current audit claims **30 phases, 169/169 automated assertions, 30 UI routes, dynamic xDS, API discovery, virtual patching, DLP, rate limiting, bot policy, DDoS/L7, threat intelligence, SIEM/SOAR, HA topology, RBAC, multi-tenancy and DR**.  
+Yang kamu mau adalah:
 
-So adding another generic "Phase 31: More Security" would be pointless.
+> **Project WAF-PRO yang sekarang diperkuat dari sisi WAF-nya sendiri supaya secara capability, workflow, policy, detection, enforcement, investigation, dan operational behaviour terasa seperti enterprise WAF yang solid.**
 
-What is missing now is **depth**.
+Jadi teknologi adalah kendaraan. **Produk WAF-nya yang harus diperdalam.**
 
-I would extend the document from **30 phases → 45 phases**, organised around the actual lifecycle of a modern WAF.
+Kalau begitu, saya justru akan **buang sebagian roadmap teknologi tadi** dan fokus ke **WAF capability maturity**.
 
 ---
 
-# WAF Pro SaaS — Extended Enterprise Roadmap
+# WAF-PRO — Enterprise WAF Capability Roadmap
 
-## Pillar 1 — Application Protection
+Baseline kamu sekarang sudah punya:
 
-### Phase 31 — Advanced Application Discovery
+* Coraza + CRS
+* custom rules
+* IP blocking
+* rate limiting
+* bot
+* DDoS/L7
+* Geo/ASN
+* threat intelligence
+* DLP
+* API discovery
+* simulator
+* replay
+* incident
+* alerting
+* RBAC
+* SIEM
+* TLS
+* analytics
+* AI anomaly detection
 
-Move beyond basic API inventory.
+Yang kurang bukan “service baru”.
 
-Add automatic discovery of:
+Yang kurang adalah **kedalaman WAF decision engine**.
 
-* Web applications
-* APIs
-* GraphQL endpoints
-* WebSocket endpoints
-* gRPC services
-* static assets
-* authentication endpoints
-* admin endpoints
-* upload endpoints
-* sensitive endpoints
+---
 
-Example:
+# 1. Policy Engine 2.0
+
+Ini menurut saya **prioritas nomor satu**.
+
+Sekarang jangan berpikir policy hanya:
+
+```text
+IF rule matched
+THEN block
+```
+
+Enterprise WAF perlu policy yang composable.
+
+Contoh:
 
 ```text
 Application
-│
-├── Web
-│   ├── /
-│   ├── /login
-│   └── /dashboard
-│
-├── REST API
-│   ├── /api/users
-│   ├── /api/orders
-│   └── /api/payment
-│
-├── GraphQL
-│   └── /graphql
-│
-└── WebSocket
-    └── /ws
-```
-
-The goal is to make the WAF understand **what is actually exposed**, not just what has been manually configured.
-
----
-
-## Phase 32 — API Schema Enforcement
-
-Your existing API discovery should evolve into actual schema protection.
-
-Support:
-
-* OpenAPI import
-* OpenAPI validation
-* JSON schema
-* parameter types
-* required fields
-* allowed methods
-* allowed content types
-* request size
-* response schema where practical
-
-Workflow:
-
-```text
-OpenAPI
    ↓
-Import
+Virtual Server
    ↓
-API Inventory
-   ↓
-Compare observed traffic
-   ↓
-Unknown endpoint
-Unknown parameter
-Invalid method
-Invalid type
-   ↓
-Alert / Block
+Security Policy
+   ├── Managed Rules
+   ├── Custom Rules
+   ├── API Security
+   ├── Bot Policy
+   ├── Rate Limit
+   ├── Geo Policy
+   ├── IP Reputation
+   ├── DLP
+   └── Exceptions
 ```
 
-This is a major step up from traditional CRS-only WAF.
+Policy harus punya **priority dan evaluation order**.
+
+Misalnya:
+
+```text
+1. Allowlist
+2. Trusted Source
+3. Emergency Block
+4. Rate Limit
+5. Bot
+6. Protocol Validation
+7. API Validation
+8. CRS
+9. Custom Rules
+10. DLP
+```
+
+Jangan sampai operator bingung:
+
+> "Kenapa rule A menang atas rule B?"
+
+UI harus bisa menunjukkan **policy evaluation chain**.
 
 ---
 
-# Pillar 2 — Identity-Aware Protection
+# 2. Rule Engine yang Lebih Serius
 
-## Phase 33 — Identity & Session Security
+Custom rule jangan cuma SecLang textarea.
 
-Currently most WAF decisions are network/request based.
-
-Add awareness of:
-
-* authenticated user
-* session
-* API key
-* JWT subject
-* OAuth client
-* service account
-
-Do **not** make the WAF responsible for authenticating users. Instead, consume trusted identity metadata from the gateway/application.
-
-Example:
+Buat rule lifecycle:
 
 ```text
-IP: 10.10.10.1
-User: hanif
-Role: ADMIN
-Application: RMS
-Endpoint: /api/admin
-```
-
-Then policies can become:
-
-```text
-ADMIN → /api/admin → ALLOW
-USER  → /api/admin → BLOCK
-```
-
-Envoy already exposes security-related filters such as JWT authentication and external authorisation, which gives you natural integration points rather than inventing another authentication stack. ([Envoy Gateway][1])
-
----
-
-## Phase 34 — JWT & Token Security
-
-Add inspection/validation of:
-
-* JWT issuer
-* audience
-* expiry
-* algorithm
-* claims
-* token size
-* token placement
-* malformed tokens
-
-Policies:
-
-```text
-Missing JWT       → BLOCK
-Expired JWT       → BLOCK
-Wrong audience    → BLOCK
-Unexpected issuer → BLOCK
-```
-
-Never log the raw token.
-
----
-
-# Pillar 3 — Modern Protocol Protection
-
-## Phase 35 — GraphQL Security
-
-GraphQL deserves its own module.
-
-Detect:
-
-* introspection
-* query depth
-* query complexity
-* excessive aliases
-* batching abuse
-* oversized queries
-* mutation abuse
-* field allowlisting
-
-Example:
-
-```text
-/graphql
-
-maxDepth: 8
-maxComplexity: 500
-maxAliases: 20
-introspection: disabled
-```
-
-Actions:
-
-```text
-ALLOW
-ALERT
-BLOCK
-RATE_LIMIT
-```
-
----
-
-## Phase 36 — WebSocket Security
-
-Support:
-
-```text
-HTTP Upgrade
-      ↓
-WebSocket
-      ↓
-WAF policy
-```
-
-Control:
-
-* allowed origins
-* connection rate
-* concurrent connections
-* message size
-* idle timeout
-* authentication
-* IP limits
-
-This prevents your "web WAF" from becoming blind once traffic changes protocol.
-
----
-
-## Phase 37 — gRPC Security
-
-Add:
-
-* method allowlisting
-* metadata inspection
-* message size
-* rate limits
-* authentication metadata
-* method-level policy
-
-Example:
-
-```text
-service UserService
-
-Allowed:
-GetUser
-CreateUser
-
-Blocked:
-DeleteUser
-```
-
----
-
-# Pillar 4 — Advanced Abuse Protection
-
-## Phase 38 — Credential Stuffing & Account Abuse
-
-Separate this from generic bot detection.
-
-Detect:
-
-```text
-Many accounts
-      ↑
-Same IP
-
-OR
-
-One account
-      ↑
-Many IPs
-```
-
-Signals:
-
-* login failure rate
-* username distribution
-* IP distribution
-* ASN
-* country
-* session
-* device/browser signals
-* request velocity
-
-Actions:
-
-```text
-MONITOR
-RATE_LIMIT
-CHALLENGE
-BLOCK
-```
-
----
-
-## Phase 39 — Account Takeover Detection
-
-Build a risk model around:
-
-```text
-Login
- ↓
-Identity
- ↓
-Behaviour
- ↓
-Risk
-```
-
-Example signals:
-
-```text
-New country
-New ASN
-Impossible velocity
-Abnormal request pattern
-Multiple failed MFA
-Credential stuffing pattern
-```
-
-Result:
-
-```text
-Risk Score: HIGH
-```
-
-Then let the application/SIEM decide the business response where appropriate.
-
-Don't make the WAF autonomously lock users out based on weak signals.
-
----
-
-## Phase 40 — Scraping & Business Abuse
-
-This is an area traditional CRS doesn't solve well.
-
-Detect:
-
-* excessive product scraping
-* price scraping
-* inventory scraping
-* pagination abuse
-* search scraping
-* account enumeration
-* coupon abuse
-* endpoint harvesting
-
-Example:
-
-```text
-GET /products?page=1
-GET /products?page=2
-GET /products?page=3
-...
-GET /products?page=5000
-```
-
-Policy:
-
-```text
->100 pages / 10 min / client
-
-→ RATE_LIMIT
-```
-
----
-
-# Pillar 5 — Smarter WAF Operations
-
-## Phase 41 — Configuration Impact Analysis
-
-Before changing a rule:
-
-```text
-Change
- ↓
-Impact Analysis
-```
-
-Show:
-
-```text
-Affected Applications     4
-Affected Endpoints       27
-Historical Requests    82,421
-Would Block             312
-Known Legitimate         17
-```
-
-Then:
-
-```text
-[Review]
-[Publish]
-[Cancel]
-```
-
-This should become a major feature.
-
----
-
-## Phase 42 — Safe Deployment / Canary Policies
-
-Don't immediately publish a rule globally.
-
-Support:
-
-```text
-Policy
- ↓
-5% traffic
- ↓
-10%
- ↓
-25%
- ↓
-50%
- ↓
-100%
-```
-
-Or:
-
-```text
-Application A
-    ↓
-Canary policy
-
-Application B
-    ↓
-Old policy
-```
-
-Automatic rollback if:
-
-```text
-5xx increases
-latency increases
-false positives spike
-WAF errors increase
-```
-
----
-
-## Phase 43 — Rule Performance Profiler
-
-Because you are running CRS inside the data plane, you need to know:
-
-```text
-Which rule is expensive?
-Which rule triggers most?
-Which rule adds latency?
-```
-
-Dashboard:
-
-```text
-Rule       Hits       Avg Eval    P95
-942100     12,421     0.18ms      0.41ms
-941100      8,211     0.11ms      0.29ms
-930120      1,291     0.07ms      0.16ms
-```
-
-Coraza explicitly provides benchmarking/testing capabilities, so this should be tied to real engine measurements rather than invented performance numbers. ([GitHub][2])
-
----
-
-# Pillar 6 — Threat Intelligence
-
-## Phase 44 — Threat Intelligence Correlation
-
-You already have IOC ingestion.
-
-Take it further:
-
-```text
-WAF Event
-   +
-Threat Intelligence
-   +
-Historical Behaviour
-   ↓
-Threat Context
-```
-
-Event becomes:
-
-```text
-SQL Injection
-
-IP:
-203.x.x.x
-
-Threat Intel:
-Known scanner
-
-ASN:
-Hosting Provider
-
-Previous WAF Events:
-4,821
-
-Risk:
-HIGH
-```
-
-The important difference is **context**, not merely "IP exists in a blocklist".
-
----
-
-# Pillar 7 — Detection Engineering
-
-## Phase 45 — Detection-as-Code
-
-This would make the project much more mature.
-
-Rules live in Git:
-
-```text
-rules/
-├── managed/
-├── custom/
-├── exceptions/
-├── virtual-patches/
-└── tests/
-```
-
-PR:
-
-```text
-Add rule WAF-00123
-```
-
-CI:
-
-```text
-Syntax
- ↓
-Unit tests
- ↓
-Attack tests
- ↓
-False-positive regression
- ↓
-Performance test
- ↓
-Security review
-```
-
-Only then:
-
-```text
-Merge
- ↓
-Publish
- ↓
-xDS
-```
-
-This is much safer than someone editing a production rule directly in the dashboard.
-
----
-
-# Another major addition: WAF-as-Code
-
-I'd add this as a cross-cutting capability rather than another isolated phase.
-
-Example:
-
-```yaml
-application: rms-production
-
-mode: blocking
-
-rules:
-  - crs: "942100"
-
-exceptions:
-  - rule: "942100"
-    path: "/api/search"
-    parameter: "q"
-
-rate_limits:
-  - path: "/api/login"
-    requests: 10
-    window: "1m"
-```
-
-Then:
-
-```text
-Git
- ↓
-CI
+Draft
  ↓
 Validate
  ↓
-Security tests
+Test
  ↓
-Approval
+Monitor
  ↓
-WAF Control Plane
+Approve
  ↓
-xDS
+Enforce
  ↓
-Envoy
+Retire
 ```
 
-This is especially valuable for your use case because the platform will eventually have **hundreds or thousands of applications**, where UI-only configuration becomes painful.
+Setiap rule punya:
+
+```text
+Rule ID
+Name
+Description
+Category
+Severity
+Confidence
+Action
+Priority
+Scope
+Created By
+Approved By
+Version
+Status
+```
+
+Dan scope:
+
+```text
+Global
+Application
+Host
+Path
+Method
+Parameter
+Header
+Cookie
+IP
+Country
+User
+API
+```
 
 ---
 
-# One more feature: Environment Promotion
+# 3. Rule Scope Engine
 
-Your WAF should understand:
+Ini akan membuat WAF jauh lebih powerful.
 
-```text
-DEV
- ↓
-SIT
- ↓
-UAT
- ↓
-PREPROD
- ↓
-PROD
-```
-
-A rule can be promoted:
+Misalnya rule:
 
 ```text
-Rule v12
-
-DEV       ✓
-SIT       ✓
-UAT       ✓
-PREPROD   ✓
-PROD      pending
+942100 SQL Injection
 ```
 
-Then:
+Jangan cuma:
 
 ```text
-[Promote to PROD]
+942100 → BLOCK
 ```
 
-with approval.
+Bisa:
 
-This fits extremely well with your existing DevOps/SRE workflow.
+```text
+Global:
+    BLOCK
+
+/api/search:
+    MONITOR
+
+/api/report:
+    BLOCK
+
+/admin:
+    BLOCK + ALERT
+```
+
+Atau:
+
+```text
+POST /payment
+    BLOCK
+
+GET /payment
+    ALLOW
+```
 
 ---
 
-# One more: Maintenance / Change Window
+# 4. Advanced Exception Engine
 
-For enterprise WAF:
+Exception jangan cuma:
 
 ```text
-Change Request
-      ↓
-Approval
-      ↓
-Scheduled
-      ↓
-Deployment
-      ↓
-Validation
-      ↓
-Close
+remove rule ID
 ```
 
-Store:
+Buat exception granular.
+
+Contoh:
 
 ```text
-CRQ
-Ticket
-Requester
-Approver
-Change window
-Previous config
-New config
-Rollback plan
-```
+Application:
+RMS
 
-Your existing CSOP-style risk acceptance workflow makes this especially relevant. 
+Endpoint:
+/api/customer
 
----
+Method:
+POST
 
-# One more: "Explain This Block"
-
-This should be a first-class UX feature.
-
-When an operator sees:
-
-```text
-BLOCKED
-```
-
-they should be able to click:
-
-**Why?**
-
-And get:
-
-```text
-Decision: BLOCK
-
-Policy:
-WAF_RMS_PRODUCTION
+Parameter:
+customerName
 
 Rule:
 942100
 
-Category:
-SQL Injection
-
-Matched Variable:
-ARGS:q
-
-Anomaly Score:
-7
-
-Threshold:
-5
-
-Paranoia Level:
-1
-
 Action:
+EXCEPTION
+```
+
+Lebih bagus lagi:
+
+```text
+IF
+  application = RMS
+  AND endpoint = /api/customer
+  AND method = POST
+  AND parameter = customerName
+  AND source != untrusted
+THEN
+  exclude rule 942100
+```
+
+Jadi exception **tidak berubah menjadi global whitelist**.
+
+---
+
+# 5. WAF Learning Mode 2.0
+
+Ini fitur yang menurut saya harus dibuat sangat serius.
+
+Saat aplikasi baru onboard:
+
+```text
+LEARNING
+```
+
+WAF mengamati:
+
+* endpoint
+* method
+* parameter
+* content type
+* response code
+* normal request size
+* normal parameter value
+* authentication
+* source geography
+* request frequency
+* API schema
+
+Kemudian menghasilkan:
+
+> **Suggested Security Policy**
+
+Contoh:
+
+```text
+Detected Application
+
+Endpoints: 127
+Methods: 6
+Parameters: 438
+
+Suggested Controls:
+
+✓ Block unexpected HTTP methods
+✓ Restrict content-type
+✓ Protect /admin
+✓ Rate limit /login
+✓ API schema detected
+✓ 4 suspicious endpoints
+✓ 12 CRS rules frequently triggered
+```
+
+Operator tinggal:
+
+```text
+Review → Approve → Enforce
+```
+
+Ini salah satu workflow yang akan membuat WAF kamu terasa enterprise.
+
+---
+
+# 6. Positive Security Model
+
+CRS adalah **negative security model**:
+
+> cari pola serangan.
+
+Tambahkan:
+
+> **Positive Security Model**
+
+Misalnya endpoint:
+
+```text
+POST /api/payment
+```
+
+WAF tahu:
+
+```text
+Allowed:
+Content-Type: application/json
+
+Fields:
+amount       number
+currency     string
+customerId   string
+
+Max body:
+10 KB
+```
+
+Maka request:
+
+```json
+{
+  "amount": 100,
+  "currency": "IDR",
+  "customerId": "123",
+  "isAdmin": true,
+  "executeShell": "..."
+}
+```
+
+bisa ditolak walaupun tidak ada signature SQLi/XSS.
+
+---
+
+# 7. Attack Signature Intelligence
+
+Jangan tampilkan cuma:
+
+```text
+942100
+```
+
+Buat hierarchy:
+
+```text
+SQL Injection
+ ├── Generic SQLi
+ ├── UNION
+ ├── Boolean
+ ├── Time-based
+ ├── Error-based
+ └── DB-specific
+```
+
+XSS:
+
+```text
+Cross Site Scripting
+ ├── Script
+ ├── Event Handler
+ ├── DOM
+ ├── Encoded
+ └── Polyglot
+```
+
+Path Traversal:
+
+```text
+File Inclusion
+ ├── ../
+ ├── Encoded traversal
+ ├── Null byte
+ ├── Windows path
+ └── Unix path
+```
+
+SOC operator jadi memahami **attack category**, bukan cuma CRS ID.
+
+---
+
+# 8. Attack Confidence & Severity
+
+Jangan hanya:
+
+```text
+Severity: HIGH
+```
+
+Pisahkan:
+
+```text
+Severity: HIGH
+Confidence: 96%
+```
+
+Misalnya:
+
+```text
+SQLi signature
++
+POST body
++
+known attack pattern
++
+malicious source reputation
+```
+
+→ confidence tinggi.
+
+Sedangkan:
+
+```text
+suspicious character only
+```
+
+→ confidence rendah.
+
+Ini berguna untuk menentukan:
+
+```text
 BLOCK
-
-Exception:
-None
+CHALLENGE
+MONITOR
 ```
-
-This will save your L2/L3 team enormous amounts of time.
 
 ---
 
-# One more: "Why Wasn't This Blocked?"
+# 9. Attack Correlation
 
-The inverse is equally valuable.
+Sekarang event jangan berdiri sendiri.
 
-Operator enters:
+Contoh:
 
 ```text
-Request ID
+09:01 SQLi
+09:02 SQLi
+09:03 scanner
+09:04 /admin
+09:05 /etc/passwd
 ```
 
-and gets:
+WAF harus membuat:
+
+> **Attack Campaign**
 
 ```text
-Request was ALLOWED because:
+Campaign #AC-001
 
-✓ IP allowed
-✓ Application policy matched
-✓ CRS rule 942100 did not trigger
-✓ Rule exception WAF-EXC-019 applied
-✓ Rate limit not exceeded
-```
+Source:
+1.2.3.4
 
-This is **far more useful than another fancy security graph**.
+Target:
+RMS
 
----
-
-# One more: WAF Flight Recorder
-
-I'd add a short-lived high-detail diagnostic mode.
-
-```text
-Normal:
-Standard logging
-
-Debug mode:
-Detailed request inspection
-Rule evaluation
-Timing
-Policy decisions
-```
-
-With:
-
-```text
 Duration:
-15 minutes
+5m 31s
 
-Scope:
+Attacks:
+SQLi
+Scanner
+Path Traversal
+Admin Enumeration
+
+Total:
+842 requests
+
+Blocked:
+831
+
+Allowed:
+11
+```
+
+Ini jauh lebih enterprise daripada sekadar `security_events`.
+
+---
+
+# 10. Attack Lifecycle
+
+Buat state:
+
+```text
+Detected
+   ↓
+Investigating
+   ↓
+Contained
+   ↓
+Mitigated
+   ↓
+Resolved
+```
+
+Jadi incident management benar-benar terhubung dengan WAF.
+
+---
+
+# 11. IP Intelligence
+
+IP blocking kamu bisa dikembangkan menjadi:
+
+```text
+IP Intelligence
+```
+
+Setiap IP punya profile:
+
+```text
+IP: 1.2.3.4
+
+Country: RU
+ASN: XXXXX
+Reputation: Malicious
+First Seen: ...
+Last Seen: ...
+
+Requests: 12,882
+Blocked: 11,922
+
+Attack Types:
+SQLi
+Scanner
+XSS
+Brute Force
+```
+
+Lalu:
+
+> **IP Behaviour Timeline**
+
+---
+
+# 12. Application Risk Score
+
+Setiap application punya posture.
+
+Contoh:
+
+```text
 RMS Production
 
-Endpoints:
-/api/*
+Risk:
+HIGH
+
+Reasons:
+- 12 exposed admin endpoints
+- 3 API schema violations
+- 2 high severity rules
+- credential attacks detected
+- no bot challenge
 ```
 
-Then automatically turn itself off.
-
-This gives L2/L3 a safe troubleshooting tool without permanently logging sensitive request data.
+Bukan sekadar dashboard traffic.
 
 ---
 
-# One more: Sensitive Data Controls
+# 13. Endpoint Risk Score
 
-Your DLP should have a **redaction engine**.
-
-Before events are stored:
+Lebih dalam lagi.
 
 ```text
-password=secret123
+/api/payment
+
+Risk: HIGH
+
+Traffic:
+12,821 RPS
+
+Authentication:
+Required
+
+Attacks:
+42
+
+Rate Limit:
+Enabled
+
+Schema:
+Enforced
+
+Last Incident:
+2 hours ago
 ```
 
-becomes:
-
-```text
-password=[REDACTED]
-```
-
-Also:
-
-```text
-Authorization: Bearer ey...
-Cookie: session=...
-X-API-Key: ...
-```
-
-must never be persisted in plaintext.
-
-Support configurable:
-
-```text
-REDACT
-HASH
-MASK
-DROP
-```
-
-This should apply to:
-
-* logs
-* events
-* replay data
-* exports
-* SIEM
-* audit views
+Endpoint menjadi security asset tersendiri.
 
 ---
 
-# Final architecture after these additions
+# 14. API Attack Detection
 
-I would now describe WAF Pro as:
-
-```text
-                           WAF PRO
-                              │
-       ┌──────────────────────┼──────────────────────┐
-       │                      │                      │
-   PROTECTION              DISCOVERY              RESPONSE
-       │                      │                      │
-   CRS / Rules             Learning               Alerting
-   Virtual Patch           API Discovery          Incident
-   DLP                     API Schema             Block IP
-   IP / Geo                GraphQL                Challenge
-   Rate Limit              WebSocket              SIEM/SOAR
-   L7 Shield               gRPC
-       │                      │
-       └──────────────┬───────┘
-                      │
-                POLICY ENGINE
-                      │
-        ┌─────────────┼─────────────┐
-        ▼             ▼             ▼
-      ALLOW        CHALLENGE       BLOCK
-                      │
-                      ▼
-                ORIGIN APPS
-```
-
-And above it:
+Tambahkan kategori khusus:
 
 ```text
-CONTROL PLANE
-│
-├── Application Management
-├── Policy Studio
-├── Rule Management
-├── Learning
-├── API Inventory
-├── Configuration Versioning
-├── Canary Deployment
-├── WAF-as-Code
-├── RBAC / SSO
-├── Multi-Tenancy
-└── Audit
+API Abuse
 ```
 
-Below it:
+Contoh:
+
+* BOLA / IDOR
+* excessive data exposure
+* mass assignment
+* API enumeration
+* parameter pollution
+* schema violation
+* excessive resource consumption
+* broken authentication
+* unrestricted endpoint access
+
+Jadi WAF-PRO punya:
+
+> **OWASP API Security coverage**
+
+bukan hanya OWASP CRS.
+
+---
+
+# 15. Virtual Patching yang Benar-benar Operational
+
+Flow:
 
 ```text
-OBSERVABILITY
-│
-├── Metrics
-├── Logs
-├── Security Events
-├── Threat Intelligence
-├── Rule Performance
-├── Capacity
-├── Health
-└── SIEM
+CVE discovered
+      ↓
+Affected Application
+      ↓
+Affected Endpoint
+      ↓
+Attack Pattern
+      ↓
+Virtual Patch
+      ↓
+Replay historical traffic
+      ↓
+False-positive analysis
+      ↓
+Canary
+      ↓
+Production
 ```
 
-## What I would **not** add yet
+UI:
 
-This is equally important.
+> **Create Virtual Patch**
 
-I would **not** bloat the roadmap with:
+Operator tidak perlu menulis semuanya dari nol.
 
-* "AI autonomous WAF"
-* LLM-generated blocking rules
-* generic AI chatbot
-* AI SOC copilot
-* 3D attack maps
-* blockchain audit
-* arbitrary microservices
-* custom ML model before sufficient telemetry
-* building your own SQLi/XSS engine instead of using CRS
+---
 
-Those sound modern but don't make the WAF fundamentally better.
+# 16. Emergency Protection Mode
 
-The strongest next generation of your product is actually:
+Ini penting untuk WAF production.
 
-**API discovery + learning + policy simulation + safe rule deployment + identity-aware protection + business-abuse detection + excellent investigation + WAF-as-code.**
+Buat:
 
-That is a much more credible product direction than piling on AI features.
+> **Emergency Mode**
 
-Your existing 30 phases can therefore become **45 implementation phases**, but I would group them into these seven pillars and make **Phase 31–45 the "Advanced / Production Intelligence" roadmap**, rather than pretending all 45 need to be completed before the first usable release. The existing audit's current gaps around TLS, distributed rate limiting, native GeoIP, SSO/RBAC, bot challenge and SIEM fit naturally into the earlier production-hardening stages. 
+Contoh incident:
 
-Also, the GitHub ecosystem supports this architecture well: Coraza is explicitly designed as an extensible WAF engine with CRS v4 compatibility and integrations including Proxy-WASM/Envoy, while Envoy provides WASM, JWT, external auth, GeoIP and local/global rate-limiting extension points. ([GitHub][2])
+```text
+CRITICAL CVE
+```
 
-**If this is going back into your `07_Audit_Summary_And_Enterprise_Roadmap.md`, I would add these as Phase 31–45 and then create a separate `08_Advanced_WAF_Product_Spec.md` containing the detailed requirements, database entities, APIs, UI flows and acceptance tests for each phase.** That keeps the roadmap readable while giving the coding agent enough detail to actually implement it.
+Operator bisa:
 
-[1]: https://gateway.envoyproxy.io/docs/api/extension_types/?utm_source=chatgpt.com "Gateway API Extensions | Envoy Gateway"
-[2]: https://github.com/corazawaf/coraza?utm_source=chatgpt.com "GitHub - corazawaf/coraza: OWASP Coraza WAF is a golang modsecurity compatible web application firewall library · GitHub"
+```text
+[ ENABLE EMERGENCY PROTECTION ]
+```
+
+Kemudian:
+
+```text
+Block suspicious payload
+Restrict endpoint
+Increase rate limit
+Enable challenge
+Disable upload
+```
+
+Dan otomatis:
+
+```text
+Expires:
+24 hours
+```
+
+Supaya emergency rule tidak menjadi permanen tanpa sengaja.
+
+---
+
+# 17. Security Policy Simulator
+
+Simulator kamu bisa dibuat jauh lebih kuat.
+
+Operator:
+
+```text
+Current Policy
+```
+
+vs
+
+```text
+Proposed Policy
+```
+
+hasil:
+
+```text
+Requests analysed       2,412,991
+
+Would block              18,421
+Currently blocked        11,201
+
+New blocks               +7,220
+
+Potential FP                183
+
+Applications affected        4
+Endpoints affected           17
+```
+
+Lalu:
+
+> **Show affected requests**
+
+Ini powerful banget.
+
+---
+
+# 18. "Why Blocked?"
+
+Harus jadi feature kelas satu.
+
+```text
+WHY BLOCKED?
+
+Request
+POST /api/customer
+
+Decision
+BLOCK
+
+Reason
+SQL Injection
+
+Rule
+942100
+
+Matched Location
+request.body.customerId
+
+Evidence
+...
+
+Policy
+RMS-PROD
+
+Exception
+None
+
+Configuration
+v42
+
+Action
+BLOCK
+```
+
+---
+
+# 19. "Why Allowed?"
+
+Sama pentingnya.
+
+```text
+WHY ALLOWED?
+
+Request matched:
+942100 SQLi
+
+But:
+
+Exception:
+RMS /api/customer /customerName
+
+Decision:
+ALLOW
+
+Reason:
+Approved exception
+
+Exception owner:
+Security Team
+
+Expires:
+30 Sep 2026
+```
+
+Ini akan sangat membantu L2/L3.
+
+---
+
+# 20. Exception Expiry
+
+**Ini kecil tapi sangat enterprise.**
+
+Jangan biarkan exception:
+
+```text
+Permanent
+```
+
+Default:
+
+```text
+7 days
+```
+
+atau:
+
+```text
+30 days
+```
+
+Kemudian:
+
+```text
+Exception expires in 2 days
+```
+
+Setelah expired:
+
+```text
+Rule automatically restored
+```
+
+Ini mencegah whitelist yang terlupakan.
+
+---
+
+# 21. WAF Configuration Drift
+
+Bandingkan:
+
+```text
+Desired Policy
+        vs
+Running Policy
+```
+
+Misalnya:
+
+```text
+Expected:
+CRS v4
+Rate limit 100/min
+
+Running:
+CRS v4
+Rate limit 500/min
+```
+
+→
+
+> **Configuration Drift Detected**
+
+---
+
+# 22. WAF Health ≠ Infrastructure Health
+
+Buat WAF-specific health:
+
+```text
+Detection Engine
+CRS Rules
+Custom Rules
+Policy Sync
+xDS
+Rate Limit
+Threat Intel
+Certificate
+Telemetry
+Learning Engine
+```
+
+Contoh:
+
+```text
+WAF Protection Status
+
+CRS             HEALTHY
+Custom Rules    HEALTHY
+xDS             HEALTHY
+Rate Limit      DEGRADED
+Threat Intel    HEALTHY
+DLP             HEALTHY
+Bot             DEGRADED
+```
+
+---
+
+# 23. Protection Coverage
+
+Ini fitur yang sangat bagus untuk enterprise.
+
+Application:
+
+```text
+RMS
+```
+
+Coverage:
+
+```text
+TLS                 ✓
+CRS                 ✓
+API Schema          ✓
+Rate Limit          ✓
+Bot                 ✓
+DLP                 ✓
+Threat Intel        ✓
+Geo Policy          ✓
+Authentication      ✓
+```
+
+Lalu:
+
+> **Protection Coverage: 86%**
+
+Bukan skor “bagus/jelek”, tapi checklist coverage yang jelas.
+
+---
+
+# 24. Security Posture
+
+Per application:
+
+```text
+Security Posture
+
+Attack Protection     ENABLED
+API Protection        ENABLED
+Bot Protection        PARTIAL
+Rate Limiting         ENABLED
+DLP                   ENABLED
+TLS                   ENABLED
+Logging               ENABLED
+Threat Intel          ENABLED
+```
+
+Operator langsung tahu gap-nya.
+
+---
+
+# 25. WAF Change Management
+
+Setiap perubahan:
+
+```text
+Hanif
+changed
+
+RMS Policy
+
+942100:
+BLOCK → MONITOR
+
+Reason:
+False Positive
+
+Ticket:
+TSEL-XXXX
+
+Approved by:
+Security Engineer
+
+Time:
+19 Sep 2026 20:32
+```
+
+Jadi setiap perubahan bisa dipertanggungjawabkan.
+
+---
+
+# 26. WAF Rule Testing Lab
+
+Buat menu:
+
+> **Rule Lab**
+
+Operator memasukkan:
+
+```http
+POST /api/test
+Content-Type: application/json
+
+{
+  "name": "<payload>"
+}
+```
+
+WAF menjawab:
+
+```text
+Rule Match
+942100
+
+Decision
+BLOCK
+
+Matched Variable
+request.body.name
+```
+
+Bisa juga:
+
+```text
+Test 100 payloads
+```
+
+dan hasil:
+
+```text
+Passed: 94
+Blocked: 6
+False Positive: 1
+```
+
+---
+
+# 27. Regression Pack
+
+Setiap custom rule harus punya test:
+
+```text
+Attack
+Expected: BLOCK
+
+Legitimate
+Expected: ALLOW
+```
+
+Sebelum production:
+
+```text
+Run Regression
+```
+
+Kalau gagal:
+
+```text
+Deployment BLOCKED
+```
+
+---
+
+# 28. WAF Policy Versioning
+
+Policy:
+
+```text
+v38
+v39
+v40
+v41
+```
+
+Operator bisa:
+
+> Compare v40 vs v41
+
+dan:
+
+> Rollback to v40
+
+---
+
+# 29. Policy Diff
+
+Jangan hanya:
+
+```text
+Version changed
+```
+
+Tampilkan:
+
+```diff
+Rate Limit
+- 100 req/min
++ 50 req/min
+
+942100
+- MONITOR
++ BLOCK
+
+Geo Policy
++ RU
++ KP
+```
+
+Ini sangat enterprise.
+
+---
+
+# 30. WAF Audit Trail 2.0
+
+Audit bukan hanya:
+
+```text
+user logged in
+```
+
+Tapi:
+
+```text
+WHO
+WHAT
+WHEN
+WHY
+FROM WHERE
+BEFORE
+AFTER
+APPROVAL
+TICKET
+RESULT
+```
+
+---
+
+# Jadi saya akan ubah filosofi project kamu
+
+Bukan:
+
+> **“Saya punya 80 phase.”**
+
+Tetapi:
+
+> **“Saya punya WAF yang punya security lifecycle lengkap.”**
+
+Strukturnya:
+
+```text
+                    WAF-PRO
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+     DISCOVERY       POLICY        DETECTION
+        │              │              │
+   Applications     Rules          Attacks
+   APIs              Exceptions     Behaviour
+   Endpoints         Rate Limit     Bot
+   Learning          Geo            Abuse
+        │              │              │
+        └──────────────┼──────────────┘
+                       │
+                   ENFORCEMENT
+                       │
+          ┌────────────┼────────────┐
+          │            │            │
+        BLOCK       CHALLENGE     ALLOW
+          │            │            │
+          └────────────┼────────────┘
+                       │
+                  INVESTIGATION
+                       │
+             Event → Campaign
+                       │
+                   INCIDENT
+                       │
+                 RESPONSE
+                       │
+                  REMEDIATION
+                       │
+                   LEARNING
+```
+
+### Dan **10 improvement paling penting** untuk project kamu sekarang:
+
+| Priority | Capability                             | Kenapa                                       |
+| -------- | -------------------------------------- | -------------------------------------------- |
+| 1        | **Policy Engine 2.0**                  | Jantung WAF                                  |
+| 2        | **Learning → Suggested Policy**        | Membuat onboarding enterprise                |
+| 3        | **Positive API Security**              | Melindungi API, bukan hanya attack signature |
+| 4        | **Advanced Exception Engine**          | Menghindari FP tanpa melemahkan WAF          |
+| 5        | **Attack Correlation / Campaign**      | Mengubah event menjadi security story        |
+| 6        | **Why Blocked / Why Allowed**          | Explainability L2/L3                         |
+| 7        | **Virtual Patching workflow**          | Response terhadap CVE                        |
+| 8        | **Policy Simulator + Impact Analysis** | Safe change                                  |
+| 9        | **Rule Lab + Regression**              | Rule quality                                 |
+| 10       | **Policy Versioning + Drift + Audit**  | Production governance                        |
+
+**Jadi iya — saya setuju dengan arah kamu. Jangan kejar “teknologi keren”. Perkuat WAF-PRO sebagai produk WAF.** Kalau 10 area ini dibuat dalam-dalam, project kamu akan terasa jauh lebih seperti **F5/Cloudflare/AWS WAF-style enterprise security platform**, bukan sekadar kumpulan Envoy + Coraza + dashboard.

@@ -12,6 +12,7 @@ import {
   Save, 
   Sliders
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface ProtocolShield {
   id: number;
@@ -51,7 +52,7 @@ export default function ModernProtocolsPage() {
   const fetchShields = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/protocol-shields/all");
+      const res = await fetch(`${API}/api/v1/protocol-shields/all`);
       if (res.ok) {
         const list: ProtocolShield[] = await res.json();
         const map: Record<string, ProtocolShield> = {};
@@ -100,7 +101,7 @@ export default function ModernProtocolsPage() {
   const saveShield = async (protocol: string, config: any, action: string) => {
     try {
       setSavingProtocol(protocol);
-      const res = await fetch(`http://localhost:8082/api/v1/protocol-shields/${protocol}`, {
+      const res = await fetch(`${API}/api/v1/protocol-shields/${protocol}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -402,3 +403,4 @@ export default function ModernProtocolsPage() {
     </div>
   );
 }
+

@@ -16,6 +16,7 @@ import {
   Clock, 
   Radio
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface ClusterNode {
   id: number;
@@ -61,7 +62,7 @@ export default function ClusterNodesPage() {
   const fetchNodes = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8082/api/v1/cluster/nodes");
+      const res = await fetch(`${API}/api/v1/cluster/nodes`);
       if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -83,7 +84,7 @@ export default function ClusterNodesPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8082/api/v1/cluster/nodes/heartbeat", {
+      const res = await fetch(`${API}/api/v1/cluster/nodes/heartbeat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -114,7 +115,7 @@ export default function ClusterNodesPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:8082/api/v1/cluster/nodes/${targetNodeId}/drain`, {
+      const res = await fetch(`${API}/api/v1/cluster/nodes/${targetNodeId}/drain`, {
         method: "POST"
       });
 
@@ -421,3 +422,4 @@ export default function ClusterNodesPage() {
     </div>
   );
 }
+

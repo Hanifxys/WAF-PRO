@@ -16,6 +16,7 @@ import {
   Eye, 
   Cpu
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface BotPolicy {
   id: number;
@@ -42,7 +43,6 @@ export default function BotManagementPage() {
   const [formAction, setFormAction] = useState<BotPolicy["action"]>("BLOCK");
   const [formDesc, setFormDesc] = useState("");
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const fetchPolicies = async () => {
     setLoading(true);
@@ -208,7 +208,7 @@ export default function BotManagementPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => window.open("http://localhost:8082/api/v1/bot-challenge/interstitial", "_blank")}
+            onClick={() => window.open(`${API}/api/v1/bot-challenge/interstitial`, "_blank")}
             className="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             <Cpu className="w-4 h-4" />
@@ -469,3 +469,4 @@ export default function BotManagementPage() {
     </div>
   );
 }
+

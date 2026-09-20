@@ -14,6 +14,7 @@ import {
   FileCode2,
   Check
 } from "lucide-react";
+import { API } from "@/lib/api";
 
 interface SimulationResult {
   total_evaluated: number;
@@ -35,7 +36,6 @@ export default function PolicySimulatorPage() {
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [notification, setNotification] = useState<{ type: "success" | "error" | null; message: string }>({ type: null, message: "" });
 
-  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
 
   const handleRunSimulation = async () => {
     if (!ruleCode.trim()) return;
@@ -285,3 +285,4 @@ export default function PolicySimulatorPage() {
     </div>
   );
 }
+
